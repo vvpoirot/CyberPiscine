@@ -1,6 +1,9 @@
 #include <stdio.h>
 #include <string.h>
 
+// lvl 1 : 
+// strcmp input with password
+
 int main() {
     char input[50];
     printf("Please enter key: ");

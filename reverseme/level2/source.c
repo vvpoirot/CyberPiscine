@@ -12,6 +12,9 @@ void ok() {
     printf("Good job.\n");
 }
 
+// lvl 2 : 
+// input must be number >> split 3 by 3 >> atoi once part for get ascii code >> put 1 by 1 in final string
+
 int main() {
     char input[255];
     
