@@ -21,7 +21,7 @@ int main() {
     char post_input[255];
     
     printf("Input : ");
-    scanf("%s", post_input);
+    scanf("%23s", post_input);
 
     char input[255];
     strcat(input, "*****");
