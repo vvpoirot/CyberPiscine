@@ -2,7 +2,8 @@ FROM debian
 
 RUN apt-get update \
     && apt-get install -y g++ \
-    && apt-get install -y libcrypto++-dev libcrypto++-doc libcrypto++-utils
+    && apt-get install -y libcrypto++-dev libcrypto++-doc libcrypto++-utils \
+    && apt-get install -y vim
 
 COPY ./main.cpp /main.cpp
 RUN g++ /main.cpp -o /home/Stockholm -lcryptopp
