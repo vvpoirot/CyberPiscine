@@ -1,0 +1,33 @@
+version: '3.8'
+
+services:
+  client:
+    build:
+      context: ./client
+    container_name: client
+    networks: 
+      - lan_fake
+    tty: true
+
+  server:
+    build:
+      context: ./server
+    container_name: server
+    ports:
+      - "8021:21"
+    networks:
+      - lan_fake
+    tty: true
+
+  attacker:
+    build:
+      context: ./attacker
+    container_name: attacker
+    networks:
+      - lan_fake
+    tty: true
+
+networks:
+  lan_fake:
+    driver: bridge
+        
