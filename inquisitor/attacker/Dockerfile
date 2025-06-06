@@ -7,5 +7,6 @@ RUN apt-get update \
     && apt-get install -y iputils-arping
 
 COPY inquisitor.py /inquisitor.py
+COPY pipexec.sh /pipexec.sh
 
 CMD [ "bash" ]

